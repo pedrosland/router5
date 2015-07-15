@@ -36,13 +36,13 @@
      * Create a new Router5 instance
      * @class
      * @param {RouteNode[]|Object[]|RouteNode|Object} routes The router routes
-     * @param {Object} [opts={}] The router options: useHash, defaultRoute and defaultParams can be specified.
+     * @param {Object} [opts={}] The router options: useHash, defaultRoute, defaultParams and prefix can be specified.
      * @return {Router5} The router instance
      */
 
     var Router5 = (function () {
         function Router5(routes) {
-            var opts = arguments[1] === undefined ? {} : arguments[1];
+            var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
             _classCallCheck(this, Router5);
 
@@ -54,6 +54,8 @@
             this.activeComponents = {};
             this.options = opts;
             this.base = window.location.pathname.replace(/^\/$/, '');
+
+            this.fixupOptions();
 
             return this;
         }
@@ -69,7 +71,21 @@
              */
             value: function setOption(opt, val) {
                 this.options[opt] = val;
+
+                this.fixupOptions();
+
                 return this;
+            }
+        }, {
+            key: 'fixupOptions',
+
+            /**
+             * Fix options
+             */
+            value: function fixupOptions() {
+                if (!this.options.prefix) {
+                    this.options.prefix = '';
+                }
             }
         }, {
             key: 'add',
@@ -178,8 +194,8 @@
              * @return {Boolean}                   Whether nor not the route is active
              */
             value: function isActive(name) {
-                var params = arguments[1] === undefined ? {} : arguments[1];
-                var strictEquality = arguments[2] === undefined ? false : arguments[2];
+                var params = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+                var strictEquality = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
 
                 var activeState = this.getState();
 
@@ -361,7 +377,7 @@
              * @private
              */
             value: function getLocation() {
-                return this.options.useHash ? window.location.hash.replace(/^#/, '') : window.location.pathname.replace(new RegExp('^' + this.base), '');
+                return this.options.useHash ? window.location.hash.replace(new RegExp('^#' + this.options.prefix), '') : window.location.pathname.replace(new RegExp('^' + this.base + this.options.prefix), '');
             }
         }, {
             key: 'buildUrl',
@@ -374,7 +390,7 @@
              * @return {String}        The built URL
              */
             value: function buildUrl(route, params) {
-                return (this.options.useHash ? window.location.pathname + '#' : this.base) + this.rootNode.buildPath(route, params);
+                return (this.options.useHash ? window.location.pathname + '#' : this.base) + this.options.prefix + this.rootNode.buildPath(route, params);
             }
         }, {
             key: 'buildPath',
@@ -454,8 +470,8 @@
              * @return {Boolean}       Whether or not transition was allowed
              */
             value: function navigate(name) {
-                var params = arguments[1] === undefined ? {} : arguments[1];
-                var opts = arguments[2] === undefined ? {} : arguments[2];
+                var params = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+                var opts = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
                 if (!this.started) return;
 

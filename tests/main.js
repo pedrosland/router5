@@ -241,5 +241,18 @@ describe('router5', function () {
         expect(router.isActive('section.view', {section: 'section1', id: 123})).toBe(false);
         expect(router.isActive('users.view', {id: 123})).toBe(false);
     });
-});
 
+    it('should accept a configurable prefix', function () {
+        router.setOption('prefix', '!');
+
+        router.navigate('users.view', {id: 1});
+        expect(window.location.hash).toBe('#!/users/view/1');
+        expect(router.isActive('users.view', {id: 1})).toBe(true);
+
+        router.setOption('prefix', '');
+
+        router.navigate('users.view', {id: 12});
+        expect(window.location.hash).toBe('#/users/view/12');
+        expect(router.isActive('users.view', {id: 12})).toBe(true);
+    });
+});

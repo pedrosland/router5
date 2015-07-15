@@ -13,7 +13,7 @@ let makeState = (name, params, path) => ({name, params, path})
  * Create a new Router5 instance
  * @class
  * @param {RouteNode[]|Object[]|RouteNode|Object} routes The router routes
- * @param {Object} [opts={}] The router options: useHash, defaultRoute and defaultParams can be specified.
+ * @param {Object} [opts={}] The router options: useHash, defaultRoute, defaultParams and prefix can be specified.
  * @return {Router5} The router instance
  */
 export default class Router5 {
@@ -22,10 +22,12 @@ export default class Router5 {
         this.callbacks = {}
         this.lastStateAttempt = null
         this.lastKnownState = null
-        this.rootNode  = routes instanceof RouteNode ? routes : new RouteNode('', '', routes)
+        this.rootNode = routes instanceof RouteNode ? routes : new RouteNode('', '', routes)
         this.activeComponents = {}
         this.options = opts
         this.base = window.location.pathname.replace(/^\/$/, '')
+
+        this.fixupOptions();
 
         return this
     }
@@ -38,7 +40,19 @@ export default class Router5 {
      */
     setOption(opt, val) {
         this.options[opt] = val
+
+        this.fixupOptions();
+
         return this
+    }
+
+    /**
+     * Fix options
+     */
+    fixupOptions() {
+        if (!this.options.prefix) {
+            this.options.prefix = '';
+        }
     }
 
     /**
@@ -280,8 +294,8 @@ export default class Router5 {
      */
     getLocation() {
         return this.options.useHash
-            ? window.location.hash.replace(/^#/, '')
-            : window.location.pathname.replace(new RegExp('^' + this.base), '')
+            ? window.location.hash.replace(new RegExp('^#' + this.options.prefix), '')
+            : window.location.pathname.replace(new RegExp('^' + this.base + this.options.prefix), '')
     }
 
     /**
@@ -292,7 +306,7 @@ export default class Router5 {
      * @return {String}        The built URL
      */
     buildUrl(route, params) {
-        return (this.options.useHash ? window.location.pathname + '#' : this.base) + this.rootNode.buildPath(route, params)
+        return (this.options.useHash ? window.location.pathname + '#' : this.base) + this.options.prefix + this.rootNode.buildPath(route, params)
     }
 
     /**
